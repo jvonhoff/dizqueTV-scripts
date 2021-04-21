@@ -18,7 +18,7 @@ import argparse
 from urllib.parse import quote
 
 # COMPLETE THESE SETTINGS
-DIZQUETV_URL = "http://localhost:8000"
+DIZQUETV_URL = "http://shockwave:8000"
 
 PLEX_URL = "http://localhost:32400"
 PLEX_TOKEN = "thisisaplextoken"
@@ -134,7 +134,7 @@ if all_items:
                                       plex_server=plex_server,
                                       number=new_channel_number,
                                       name=f"{channel_name}",
-                                      icon=f"images/{new_channel_number}.png",
+                                      icon=f"{DIZQUETV_URL}/images/{new_channel_number}.png",
                                       handle_errors=True)
         if new_channel:
             print(f"Channel {new_channel_number} '{channel_name}' successfully created.")
