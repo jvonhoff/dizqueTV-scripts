@@ -35,6 +35,9 @@ parser.add_argument("-G", '--genre',
 parser.add_argument("-C", '--collection',
                     nargs = "*", type=str,
                     help="name of collection to find items from")
+parser.add_argument("-P", '--playlist',
+                    nargs = "*", type=str,
+                    help="name of playlist to find items from")
 parser.add_argument("-s", '--section',
                     nargs="+", type=str, required=True,
                     help="Plex media section(s) to use")
@@ -47,6 +50,9 @@ parser.add_argument("-c", '--channel_number',
 parser.add_argument("-t", '--token',
                     nargs='?', type=str,
                     default=None, help="Override the script's plex token.")
+parser.add_argument("-i", "--interactive",
+                    action="store_true",
+                    help="Request confirmation before proceeding.")
 parser.add_argument("-x", "--shuffle",
                     action="store_true",
                     help="Shuffle items once channel is completed.")
@@ -62,8 +68,8 @@ if args.token is not None and len(args.token) > 0:
 
 plex_server = server.PlexServer(PLEX_URL, PLEX_TOKEN)
 
-if args.studio is None and args.genre is None and args.collection is None:
-    print(f"Either studio, genre or collection must be passed in. Exiting.")
+if args.studio is None and args.genre is None and args.collection is None and args.playlist is None:
+    print(f"Either studio, genre, collection or playlist must be passed in. Exiting.")
     exit(1)
 
 all_items = []
@@ -96,8 +102,20 @@ for section in args.section:
                     print(f"{collection} - {item.title}")
                 all_items.extend(found_coll[0].children)
 
+    if args.playlist is not None:
+        plex_playlist = plex_server.playlist(args.playlist[0])
+
+        if plex_playlist:
+            all_items.extend(plex_playlist.items())
+
+        else:
+            print(f"Could not find {args.playlist_name} playlist.")
+
 if all_items:
-    answer = input("Would you like to proceed with making the channel? (Y/N) ")
+    if (args.interactive):
+        answer = input("Would you like to proceed with making the channel? (Y/N) ")
+    else:
+        answer = "Y"
     if type(answer) == str and answer.lower().startswith('y'):
         dtv = API(url=DIZQUETV_URL, verbose=args.verbose)
         new_channel_number = args.channel_number
@@ -116,6 +134,7 @@ if all_items:
                                       plex_server=plex_server,
                                       number=new_channel_number,
                                       name=f"{channel_name}",
+                                      icon=f"images/{new_channel_number}.png",
                                       handle_errors=True)
         if new_channel:
             print(f"Channel {new_channel_number} '{channel_name}' successfully created.")
